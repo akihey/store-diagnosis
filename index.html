@@ -1,131 +1,175 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STORES お店タイプ診断</title>
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; }
-    .question, .result { display: none; }
-    .visible { display: block; }
-    video, canvas { width: 240px; height: 180px; border-radius: 8px; }
-    .btn { padding: 10px 20px; margin: 10px; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STORES お店タイプ診断</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: 'Noto Sans JP', sans-serif;
+            background: #f0f4f8;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #667eea;
+            font-size: 24px;
+        }
+        .question {
+            margin: 20px 0;
+        }
+        .question label {
+            display: block;
+            margin: 8px 0;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        #video {
+            width: 100%;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+    </style>
 </head>
 <body>
-  <h1>STORES お店タイプ診断</h1>
-  <p>いくつかの質問と表情から、あなたの「お店タイプ」を診断します！</p>
-
-  <div id="qna" class="visible">
-    <div>
-      <p>1. 休日の過ごし方は？</p>
-      <label><input type="radio" name="q1" value="0" /> カフェでゆったり</label><br />
-      <label><input type="radio" name="q1" value="1" /> スポーツで汗をかく</label><br />
-      <label><input type="radio" name="q1" value="2" /> 雑貨屋さん巡り</label>
+<div class="container">
+    <h1>STORES お店タイプ診断</h1>
+    <div class="question">
+        <label>Q1. 好きな時間の過ごし方は？</label>
+        <label><input type="radio" name="q1" value="静か"> 静かに読書や手作り</label>
+        <label><input type="radio" name="q1" value="活動的"> 外で体を動かす</label>
+        <label><input type="radio" name="q1" value="おしゃべり"> 友達としゃべる</label>
     </div>
-    <div>
-      <p>2. 自分を一言で？</p>
-      <label><input type="radio" name="q2" value="0" /> 穏やか</label><br />
-      <label><input type="radio" name="q2" value="1" /> 情熱的</label><br />
-      <label><input type="radio" name="q2" value="2" /> センス派</label>
+    <div class="question">
+        <label>Q2. 自分を一言で表すと？</label>
+        <label><input type="radio" name="q2" value="やさしい"> やさしい</label>
+        <label><input type="radio" name="q2" value="しっかり者"> しっかり者</label>
+        <label><input type="radio" name="q2" value="面白い"> 面白い</label>
     </div>
-    <div>
-      <p>3. 好きな飲み物は？</p>
-      <label><input type="radio" name="q3" value="0" /> コーヒー</label><br />
-      <label><input type="radio" name="q3" value="1" /> プロテイン</label><br />
-      <label><input type="radio" name="q3" value="2" /> ハーブティー</label>
+    <div class="question">
+        <label>Q3. 直感で好きなものは？</label>
+        <label><input type="radio" name="q3" value="おしゃれ"> おしゃれ</label>
+        <label><input type="radio" name="q3" value="自然"> 自然</label>
+        <label><input type="radio" name="q3" value="音楽"> 音楽</label>
     </div>
-    <button class="btn" onclick="startCamera()">顔も使って診断する📷</button>
-    <button class="btn" onclick="simpleDiagnosis()">顔なしで簡易診断🙆‍♀️</button>
-  </div>
+    <video id="video" autoplay muted></video>
+    <button class="btn" onclick="startDiagnosis()">顔も使って診断！</button>
+    <button class="btn" onclick="simpleDiagnosis()" style="margin-left:10px;background:#A0AEC0;">顔なしで診断</button>
+</div>
 
-  <div id="camera" class="question">
-    <p>表情を読み取っています… にっこり笑ってみてください！</p>
-    <video id="video" autoplay muted></video><br />
-    <button class="btn" onclick="analyzeExpression()">診断結果を見る</button>
-  </div>
+<div id="popup" class="popup">
+    <div class="popup-content" id="resultContent">
+        <h2>診断結果</h2>
+        <p id="resultText"></p>
+        <button class="btn" onclick="closePopup()">閉じる</button>
+    </div>
+</div>
 
-  <div id="result" class="result">
-    <h2>あなたは…</h2>
-    <canvas id="faceCanvas"></canvas>
-    <h3 id="storeType"></h3>
-    <p id="description"></p>
-    <button class="btn" onclick="location.reload()">もう一度診断する</button>
-  </div>
+<script>
+const video = document.getElementById('video');
+let expression = 'neutral';
 
-  <script>
-    const storeTypes = {
-      happy: ["カフェ店主 ☕", "明るくて居心地の良い空間をつくるのが得意！"],
-      neutral: ["雑貨屋オーナー 🛍️", "落ち着きとセンスが光るお店タイプです。"],
-      angry: ["ラーメン職人 🍜", "こだわりを大切にする情熱派タイプ！"]
-    };
+const shopTypes = {
+    happy: { name: 'カフェ屋さん', desc: '人を癒す温かい雰囲気の持ち主！' },
+    sad: { name: '本屋さん', desc: '知的で落ち着いた雰囲気のあなたにぴったり！' },
+    angry: { name: 'ラーメン屋さん', desc: '情熱的でこだわり派のあなたに！' },
+    neutral: { name: '雑貨屋さん', desc: 'センス抜群で穏やかなあなたに♪' }
+};
 
-    let expressionType = "neutral";
-    let stream;
+async function loadModels() {
+    await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model');
+    await faceapi.nets.faceExpressionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model');
+}
 
-    async function startCamera() {
-      document.getElementById("qna").classList.remove("visible");
-      document.getElementById("camera").classList.add("visible");
-      await faceapi.nets.tinyFaceDetector.loadFromUri("https://cdn.jsdelivr.net/npm/face-api.js/models");
-      await faceapi.nets.faceExpressionNet.loadFromUri("https://cdn.jsdelivr.net/npm/face-api.js/models");
+async function startCamera() {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+}
 
-      stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const video = document.getElementById("video");
-      video.srcObject = stream;
+async function startDiagnosis() {
+    const q1 = getAnswer('q1');
+    const q2 = getAnswer('q2');
+    const q3 = getAnswer('q3');
+    await loadModels();
+    const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+    if (detection && detection.expressions) {
+        const sorted = Object.entries(detection.expressions).sort((a,b) => b[1]-a[1]);
+        expression = sorted[0][0];
     }
+    showResult(expression);
+}
 
-    async function analyzeExpression() {
-      const video = document.getElementById("video");
-      const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+function simpleDiagnosis() {
+    expression = 'neutral';
+    showResult(expression);
+}
 
-      if (!detection || !detection.expressions) {
-        alert("顔が検出できませんでした！");
-        return;
-      }
+function getAnswer(name) {
+    const checked = document.querySelector(`input[name="${name}"]:checked`);
+    return checked ? checked.value : '';
+}
 
-      const expressions = detection.expressions;
-      expressionType = Object.keys(expressions).reduce((a, b) => expressions[a] > expressions[b] ? a : b);
-      stream.getTracks().forEach(track => track.stop());
+function showResult(emotion) {
+    const shop = shopTypes[emotion] || shopTypes.neutral;
+    document.getElementById('resultText').innerText = `${shop.name}タイプ！\n${shop.desc}`;
+    document.getElementById('popup').style.display = 'flex';
+}
 
-      showResult();
-    }
+function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+}
 
-    function simpleDiagnosis() {
-      expressionType = "neutral"; // デフォルト表情
-      document.getElementById("qna").classList.remove("visible");
-      showResult();
-    }
-
-    function getQuestionScore() {
-      let total = 0;
-      ["q1", "q2", "q3"].forEach(q => {
-        const checked = document.querySelector(`input[name="${q}"]:checked`);
-        if (checked) total += parseInt(checked.value);
-      });
-      return total;
-    }
-
-    function showResult() {
-      const canvas = document.getElementById("faceCanvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = 240; canvas.height = 180;
-      if (stream) {
-        ctx.drawImage(document.getElementById("video"), 0, 0, canvas.width, canvas.height);
-      } else {
-        ctx.fillStyle = "#ccc";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.font = "20px sans-serif";
-        ctx.fillStyle = "#000";
-        ctx.fillText("キャラ画像", 60, 90);
-      }
-
-      const [title, desc] = storeTypes[expressionType] || storeTypes["neutral"];
-      document.getElementById("storeType").textContent = title;
-      document.getElementById("description").textContent = desc;
-      document.getElementById("camera").classList.remove("visible");
-      document.getElementById("result").classList.add("visible");
-    }
-  </script>
+startCamera();
+</script>
 </body>
 </html>
