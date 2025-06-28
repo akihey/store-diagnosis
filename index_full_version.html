@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STORES お店タイプ診断（フル版）</title>
+  <style>
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      border-radius: 24px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+      text-align: left;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #4a5568;
+    }
+    .question-block {
+      margin-bottom: 20px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>STORES お店タイプ診断</h1>
+    <div id="questionnaire">
+      <div class="question-block">
+        <p>1. 休日の過ごし方は？</p>
+        <label><input type="radio" name="q1" value="0"> カフェでゆったり</label><br>
+        <label><input type="radio" name="q1" value="1"> スポーツで汗をかく</label><br>
+        <label><input type="radio" name="q1" value="2"> 雑貨屋さん巡り</label><br>
+      </div>
+      <div class="question-block">
+        <p>2. 自分を一言で表すと？</p>
+        <label><input type="radio" name="q2" value="0"> 穏やか</label><br>
+        <label><input type="radio" name="q2" value="1"> 情熱的</label><br>
+        <label><input type="radio" name="q2" value="2"> センス派</label><br>
+      </div>
+      <div class="question-block">
+        <p>3. 好きな飲み物は？</p>
+        <label><input type="radio" name="q3" value="0"> コーヒー</label><br>
+        <label><input type="radio" name="q3" value="1"> プロテイン</label><br>
+        <label><input type="radio" name="q3" value="2"> ハーブティー</label><br>
+      </div>
+      <button onclick="submitAnswers()">診断結果を見る</button>
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const shopTypes = [
+      { name: 'カフェ屋さん', emoji: '☕', description: '癒しの空間づくりが得意です！' },
+      { name: 'スポーツジム', emoji: '💪', description: 'エネルギッシュで健康的！' },
+      { name: '雑貨屋さん', emoji: '🎨', description: 'センス抜群、かわいいもの好き！' }
+    ];
+    function submitAnswers() {
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      const q3 = document.querySelector('input[name="q3"]:checked');
+      if (!q1 || !q2 || !q3) {
+        alert("すべての質問に答えてください！");
+        return;
+      }
+      const score = [0, 0, 0];
+      score[parseInt(q1.value)]++;
+      score[parseInt(q2.value)]++;
+      score[parseInt(q3.value)]++;
+      let maxIndex = 0;
+      for (let i = 1; i < score.length; i++) {
+        if (score[i] > score[maxIndex]) maxIndex = i;
+      }
+      const result = shopTypes[maxIndex];
+      document.getElementById("result").innerHTML =
+        `<h2>あなたは「${result.name}」タイプ！ ${result.emoji}</h2><p>${result.description}</p>`;
+    }
+  </script>
+</body>
+</html>
