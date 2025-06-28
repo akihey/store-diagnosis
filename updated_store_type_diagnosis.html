@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STORES お店タイプ診断</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .button {
+      background: #4da6ff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    .modal-content h2 {
+      color: #4a5568;
+    }
+    .emoji {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    #video {
+      margin: 10px auto;
+      display: block;
+      width: 320px;
+      height: 240px;
+      background: #ddd;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>STORES お店タイプ診断</h1>
+  <video id="video" autoplay muted playsinline></video>
+  <br/>
+  <button class="button" onclick="startDiagnosis()">顔で診断</button>
+  <button class="button" onclick="manualDiagnosis()">簡易診断</button>
+
+  <div class="modal" id="resultModal">
+    <div class="modal-content">
+      <span class="emoji" id="resultEmoji">😺</span>
+      <h2 id="resultTitle">診断結果</h2>
+      <p id="resultText">ここに説明が入ります。</p>
+      <button class="button" onclick="closeModal()">閉じる</button>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById("video");
+    const shopTypes = [
+      { name: 'カフェ屋さん', emoji: '☕', description: '居心地の良い空間作りが得意です' },
+      { name: 'ラーメン屋さん', emoji: '🍜', description: 'こだわりと情熱で勝負するタイプ！' },
+      { name: '本屋さん', emoji: '📚', description: '知的で落ち着いた雰囲気が魅力です' },
+      { name: '花屋さん', emoji: '🌸', description: 'やさしさと美しさを愛する心の持ち主' }
+    ];
+
+    Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'),
+      faceapi.nets.faceExpressionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/')
+    ]).then(startVideo);
+
+    function startVideo() {
+      navigator.mediaDevices.getUserMedia({ video: {} })
+        .then(stream => {
+          video.srcObject = stream;
+        })
+        .catch(() => {
+          alert("カメラにアクセスできませんでした");
+        });
+    }
+
+    async function startDiagnosis() {
+      const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+      let emotion = 'neutral';
+      if (detection && detection.expressions) {
+        const sorted = Object.entries(detection.expressions).sort((a,b) => b[1] - a[1]);
+        emotion = sorted[0][0];
+      }
+      showResultByEmotion(emotion);
+    }
+
+    function manualDiagnosis() {
+      const random = Math.floor(Math.random() * shopTypes.length);
+      const type = shopTypes[random];
+      showModal(type);
+    }
+
+    function showResultByEmotion(emotion) {
+      let index = 0;
+      if (emotion === 'happy') index = 0;
+      else if (emotion === 'angry') index = 1;
+      else if (emotion === 'neutral') index = 2;
+      else index = 3;
+      showModal(shopTypes[index]);
+    }
+
+    function showModal(shop) {
+      document.getElementById("resultEmoji").textContent = shop.emoji;
+      document.getElementById("resultTitle").textContent = `あなたは「${shop.name}」タイプ！`;
+      document.getElementById("resultText").textContent = shop.description;
+      document.getElementById("resultModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("resultModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>
